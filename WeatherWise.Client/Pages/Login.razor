@@ -1,0 +1,231 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Supabase.Gotrue
+@inject SupabaseService SupabaseService
+@inject NavigationManager Navigation
+
+<div class="login-page">
+    <div class="login-container">
+        <div class="image-content">
+            <img src="/signin-image.jpg" alt="Sign in illustration" />
+        </div>
+
+        <div class="form-content">
+            <h1>Sign in</h1>
+            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <InputText @bind-Value="loginModel.Email" class="input-field" placeholder="Your Email" />
+                </div>
+                <div class="form-group">
+                    <InputText @bind-Value="loginModel.Password" class="input-field" placeholder="Password" type="password" />
+                </div>
+                <div class="form-group remember-me">
+                    <input type="checkbox" id="rememberMe" @bind="rememberMe" />
+                    <label for="rememberMe">Remember me</label>
+                </div>
+                <button class="login-button" type="submit">Log in</button>
+            </EditForm>
+            <a href="/register" class="create-account">Create an account</a>
+            <div class="social-login">
+                <p>Or login with</p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon facebook">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" />
+                    </a>
+                    <a href="#" class="social-icon twitter">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/X_logo.jpg" alt="Twitter" />
+                    </a>
+                    <a href="#" class="social-icon google">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" />
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool rememberMe = false;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            var session = await SupabaseService.SignIn(loginModel.Email, loginModel.Password);
+
+            if (session != null)
+            {
+                Navigation.NavigateTo("/dashboard");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Login error: {errorMessage}");
+        }
+    }
+
+    // private async Task SignInWithProvider(Provider provider)
+    // {
+    //     try
+    //     {
+    //         await SupabaseService.SignInWithProvider(provider);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         errorMessage = ex.Message;
+    //         Console.WriteLine($"Provider login error: {errorMessage}");
+    //     }
+    // }
+
+    public class LoginModel
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .login-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9f9f9;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .image-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .image-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .form-content {
+        flex: 1;
+        padding-left: 2rem;
+    }
+
+    .form-content h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    .input-field::placeholder {
+        color: #aaa;
+    }
+
+    .form-group.remember-me {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-group.remember-me input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
+
+    .form-group.remember-me label {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .login-button {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .login-button:hover {
+        background-color: #0056b3;
+    }
+
+    .create-account {
+        display: block;
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #555;
+        text-decoration: none;
+    }
+
+    .create-account:hover {
+        text-decoration: underline;
+    }
+
+    .social-login {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .social-login p {
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .social-icons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .social-icon img {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .social-icon img:hover {
+        transform: scale(1.1);
+    }
+</style>

@@ -1,0 +1,162 @@
+﻿@page "/dashboard"
+
+<div class="dashboard-container">
+    <!-- Left Section: Weather Info -->
+    <div class="weather-info">
+        <img src="weatherWise logo.png" alt="WeatherWise Logo" class="logo" />
+        <div class="temperature">16°</div>
+        <div class="location-details">
+            <div class="city">London</div>
+            <div class="date-time">06:09 - Monday, 9 Sep '23</div>
+        </div>
+        <div class="weather-icon">
+            <img src="weather icon.png" alt="Cloud Icon" />
+        </div>
+    </div>
+
+    <!-- Right Section: Glass Panel -->
+    <div class="weather-panel">
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" placeholder="Search Location..." />
+            <img src="fa_search.svg" alt="Search Icon" />
+        </div>
+
+        <!-- Weather Details -->
+        <div class="details">
+            <h4>Weather Details...</h4>
+            <strong>THUNDERSTORM WITH LIGHT DRIZZLE</strong>
+
+            <div class="detail-item">Temp max <span>19° 🌡️</span></div>
+            <div class="detail-item">Temp min <span>15° 🧊</span></div>
+            <div class="detail-item">Humidity <span>58% 💧</span></div>
+            <div class="detail-item">Cloudy <span>86% ☁️</span></div>
+            <div class="detail-item">Wind <span>5km/h 🌀</span></div>
+        </div>
+
+        <hr />
+
+        <!-- Weather Forecast -->
+        <div class="forecast">
+            <h5>Today's Weather Forecast...</h5>
+            <div class="forecast-item">❄️ 09:00 - Snow 19°</div>
+            <div class="forecast-item">❄️ 12:00 - Snow 18°</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        display: flex;
+        height: 100vh;
+        background-image: url('/Background.webp'); /* Background image */
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        background-color: black;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Left Section: Weather Info */
+    .weather-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 3rem;
+        position: relative;
+    }
+
+    .logo {
+        width: 50px;
+        margin-bottom: 2rem;
+    }
+
+    .temperature {
+        font-size: 8rem;
+        font-weight: 200;
+    }
+
+    .location-details .city {
+        font-size: 3rem;
+        font-weight: 500;
+    }
+
+    .location-details .date-time {
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
+
+    .weather-icon img {
+        width: 50px;
+        margin-top: 1rem;
+    }
+
+    /* Right Section: Glass Panel */
+    .weather-panel {
+        width: 35%;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-left: 2px solid rgba(255, 255, 255, 0.2);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .search-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .search-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-bar img {
+            width: 20px;
+            cursor: pointer;
+        }
+
+    .details h4 {
+        font-weight: normal;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 0.3rem;
+    }
+
+    .details strong {
+        display: block;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+    }
+
+    /* Forecast Section */
+    .forecast h5 {
+        margin-top: 1rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .forecast-item {
+        padding: 0.4rem 0;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+    }
+</style>

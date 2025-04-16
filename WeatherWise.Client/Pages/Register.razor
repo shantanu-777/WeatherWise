@@ -1,0 +1,297 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@inject SupabaseService SupabaseService
+@inject NavigationManager Navigation
+
+<div class="register-page">
+    <div class="register-container">
+        <div class="form-content">
+            <h1>Sign up</h1>
+            <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <InputText @bind-Value="registerModel.FirstName" class="input-field" placeholder="Your Name" />
+                </div>
+                <div class="form-group">
+                    <InputText @bind-Value="registerModel.Email" class="input-field" placeholder="Your Email" />
+                </div>
+                <div class="form-group">
+                    <InputText @bind-Value="registerModel.Password" class="input-field" placeholder="Password" type="password" />
+                </div>
+                <div class="form-group">
+                    <InputText @bind-Value="registerModel.ConfirmPassword" class="input-field" placeholder="Repeat your password" type="password" />
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="terms" @bind="termsAccepted" />
+                    <label for="terms">I agree all statements in <a href="#">Terms of service</a></label>
+                </div>
+                <button class="register-button" type="submit" disabled="@(!termsAccepted)">Register</button>
+            </EditForm>
+            <a href="/login" class="already-member">I am already a member</a>
+        </div>
+        <div class="image-content">
+            <img src="/signup-image.jpg" alt="Sign up illustration" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private bool termsAccepted = false;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            var session = await SupabaseService.SignUp(
+                registerModel.Email,
+                registerModel.Password,
+                registerModel.FirstName);
+
+            if (session != null)
+            {
+                Navigation.NavigateTo("/dashboard");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Registration error: {errorMessage}");
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
+
+
+<style>
+    .register-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9f9f9;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .register-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        max-width: 800px;
+        width: 100%;
+    }
+
+    .form-content {
+        flex: 1;
+        padding-right: 2rem;
+    }
+
+    .form-content h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    .input-field::placeholder {
+        color: #aaa;
+    }
+
+    .form-group input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .form-group a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .form-group a:hover {
+        text-decoration: underline;
+    }
+
+    .register-button {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .register-button:hover {
+        background-color: #0056b3;
+    }
+
+    .already-member {
+        display: block;
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #555;
+        text-decoration: none;
+    }
+
+    .already-member:hover {
+        text-decoration: underline;
+    }
+
+    .image-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .image-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+</style>
+<style>
+    .register-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9f9f9;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .form-container {
+        flex: 1;
+        max-width: 400px;
+        padding: 2rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-right: 2rem;
+    }
+
+    .form-container h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    .input-field::placeholder {
+        color: #aaa;
+    }
+
+    .form-group input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .form-group a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .form-group a:hover {
+        text-decoration: underline;
+    }
+
+    .register-button {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .register-button:hover {
+        background-color: #0056b3;
+    }
+
+    .already-member {
+        display: block;
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #555;
+        text-decoration: none;
+    }
+
+    .already-member:hover {
+        text-decoration: underline;
+    }
+
+    .image-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .image-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+</style>
