@@ -1,35 +1,48 @@
 ﻿@page "/login"
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Components.Forms
-@using Supabase.Gotrue
-@inject SupabaseService SupabaseService
-@inject NavigationManager Navigation
+@inject Services.AuthService AuthService
+@inject NavigationManager NavigationManager
 
 <div class="login-page">
     <div class="login-container">
         <div class="image-content">
-            <img src="/signin-image.jpg" alt="Sign in illustration" />
+            <img src="/images/signin-image.jpg" alt="Sign in illustration" />
         </div>
 
         <div class="form-content">
             <h1>Sign in</h1>
-            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
                 <div class="form-group">
-                    <InputText @bind-Value="loginModel.Email" class="input-field" placeholder="Your Email" />
+                    <label for="email">Email</label>
+                    <InputText id="email" @bind-Value="loginModel.Email" class="input-field"
+                               placeholder="Your Email" />
                 </div>
                 <div class="form-group">
-                    <InputText @bind-Value="loginModel.Password" class="input-field" placeholder="Password" type="password" />
+                    <label for="password">Password</label>
+                    <div class="password-input-container">
+                        <InputText type="@(showPassword ? "text" : "password")"
+                                   id="password" @bind-Value="loginModel.Password"
+                                   class="input-field" placeholder="Password" />
+                        <span class="password-toggle" @onclick="TogglePasswordVisibility">
+                            @if (showPassword)
+                            {
+                                <span class="eye-icon">👁️</span>
+                            }
+                            else
+                            {
+                                <span class="eye-icon">👁️‍🗨️</span>
+                            }
+                        </span>
+                    </div>
                 </div>
                 <div class="form-group remember-me">
                     <input type="checkbox" id="rememberMe" @bind="rememberMe" />
                     <label for="rememberMe">Remember me</label>
                 </div>
-                <button class="login-button" type="submit">Log in</button>
+                <div class="form-group">
+                    <button type="submit" class="login-button">Log in</button>
+                </div>
             </EditForm>
-            <a href="/register" class="create-account">Create an account</a>
+            <a href="/signup" class="create-account">Create an account</a>
             <div class="social-login">
                 <p>Or login with</p>
                 <div class="social-icons">
@@ -44,52 +57,44 @@
                     </a>
                 </div>
             </div>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
         </div>
     </div>
 </div>
 
 @code {
-    private LoginModel loginModel = new();
-    private bool rememberMe = false;
+    private LoginModel loginModel = new LoginModel();
     private string errorMessage = string.Empty;
+    private bool showPassword = false;
+    private bool rememberMe = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
 
     private async Task HandleLogin()
     {
         try
         {
-            var session = await SupabaseService.SignIn(loginModel.Email, loginModel.Password);
-
+            var session = await AuthService.SignIn(loginModel.Email, loginModel.Password);
             if (session != null)
             {
-                Navigation.NavigateTo("/dashboard");
+                NavigationManager.NavigateTo("/");
             }
         }
         catch (Exception ex)
         {
             errorMessage = ex.Message;
-            Console.WriteLine($"Login error: {errorMessage}");
         }
     }
 
-    // private async Task SignInWithProvider(Provider provider)
-    // {
-    //     try
-    //     {
-    //         await SupabaseService.SignInWithProvider(provider);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         errorMessage = ex.Message;
-    //         Console.WriteLine($"Provider login error: {errorMessage}");
-    //     }
-    // }
-
-    public class LoginModel
+    private class LoginModel
     {
-        [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
-
-        [Required, MinLength(6)]
         public string Password { get; set; } = string.Empty;
     }
 }
@@ -124,38 +129,63 @@
         align-items: center;
     }
 
-    .image-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 10px;
-    }
+        .image-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
 
     .form-content {
         flex: 1;
         padding-left: 2rem;
     }
 
-    .form-content h1 {
-        font-size: 2rem;
-        margin-bottom: 1.5rem;
-        color: #333;
-    }
+        .form-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
 
     .form-group {
         margin-bottom: 1rem;
     }
 
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
     .input-field {
         width: 100%;
         padding: 0.8rem;
-        border: 1px solid #ccc;
+        border: 1px solid #ddd;
         border-radius: 5px;
         font-size: 1rem;
-        outline: none;
+        transition: border-color 0.3s ease;
     }
 
-    .input-field::placeholder {
-        color: #aaa;
+        .input-field:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+    .password-input-container {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .eye-icon {
+        font-size: 1.2rem;
     }
 
     .form-group.remember-me {
@@ -163,14 +193,11 @@
         align-items: center;
     }
 
-    .form-group.remember-me input[type="checkbox"] {
-        margin-right: 0.5rem;
-    }
-
-    .form-group.remember-me label {
-        font-size: 0.9rem;
-        color: #555;
-    }
+        .form-group.remember-me label {
+            font-size: 0.9rem;
+            color: #555;
+            margin-left: 0.5rem;
+        }
 
     .login-button {
         width: 100%;
@@ -184,9 +211,9 @@
         transition: background-color 0.3s ease;
     }
 
-    .login-button:hover {
-        background-color: #0056b3;
-    }
+        .login-button:hover {
+            background-color: #0056b3;
+        }
 
     .create-account {
         display: block;
@@ -197,20 +224,20 @@
         text-decoration: none;
     }
 
-    .create-account:hover {
-        text-decoration: underline;
-    }
+        .create-account:hover {
+            text-decoration: underline;
+        }
 
     .social-login {
         margin-top: 1.5rem;
         text-align: center;
     }
 
-    .social-login p {
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-        color: #555;
-    }
+        .social-login p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
 
     .social-icons {
         display: flex;
@@ -225,7 +252,32 @@
         transition: transform 0.3s ease;
     }
 
-    .social-icon img:hover {
-        transform: scale(1.1);
+        .social-icon img:hover {
+            transform: scale(1.1);
+        }
+
+    .error-message {
+        margin-top: 1rem;
+        padding: 0.8rem;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .login-container {
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        .image-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-content {
+            padding-left: 0;
+        }
     }
 </style>

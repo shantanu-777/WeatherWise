@@ -1,4 +1,4 @@
-namespace WeatherWise.Server
+namespace BlazorApp.Server
 {
     public class WeatherForecast
     {

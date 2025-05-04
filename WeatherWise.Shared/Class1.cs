@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WeatherWise.Shared.DTOs
+namespace WeatherWise.Shared
 {
-    internal class CityWeatherDto
+    internal class Class1
     {
     }
 }

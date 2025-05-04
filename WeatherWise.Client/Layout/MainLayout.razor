@@ -1,101 +1,93 @@
 ﻿@inherits LayoutComponentBase
-@using Microsoft.AspNetCore.Components.Authorization
-@using Supabase.Gotrue
-@inject AuthenticationStateProvider AuthStateProvider
-@inject SupabaseService SupabaseService
-@inject NavigationManager Navigation
+@inject Services.AuthService AuthService
+@inject NavigationManager NavigationManager
 
-<AuthorizeView>
-    <Authorized>
-        <div class="navbar">
-            <NavLink href="" class="nav-item">Home</NavLink>
-            <NavLink href="dashboard" class="nav-item">Dashboard</NavLink>
-            <NavLink href="forecast" class="nav-item">Forecast</NavLink>
-            <button class="nav-item logout-button" @onclick="Logout">Logout</button>
-            <span class="nav-item user-email">@context.User.Identity?.Name</span>
+<div class="page @themeClass">
+    <!-- Header -->
+    <header class="header glass-effect">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">Weather Forecast</a>
+            </div>
+            <nav class="nav-menu">
+                <NavLink href="/" Match="NavLinkMatch.All">Home</NavLink>
+                @if (user != null)
+                {
+                    <NavLink href="/weather">Weather</NavLink>
+                    <NavLink href="/dashboard">Dashboard</NavLink>
+                    <button @onclick="Logout">Logout</button>
+                }
+                else
+                {
+                    <NavLink href="/dashboard">Dashboard</NavLink>
+                    <NavLink href="/login">Login</NavLink>
+                    <NavLink href="/signup">Sign Up</NavLink>
+                }
+            </nav>
+            <div class="theme-toggle">
+                <button class="btn btn-secondary" @onclick="ToggleTheme">
+                    @if (themeClass == "light-theme")
+                    {
+                        <span>🌙</span> <!-- Moon for dark theme -->
+                    }
+                    else
+                    {
+                        <span>☀️</span> <!-- Sun for light theme -->
+                    }
+                    Change Theme
+                </button>
+            </div>
         </div>
-    </Authorized>
-    <NotAuthorized>
-        <div class="navbar">
-            <NavLink href="" class="nav-item">Home</NavLink>
-            <NavLink href="login" class="nav-item">Login</NavLink>
-            <NavLink href="register" class="nav-item">Register</NavLink>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            @Body
         </div>
-    </NotAuthorized>
-</AuthorizeView>
+    </main>
 
-<div class="main-content">
-    @Body
-</div>
-
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    <!-- Footer -->
+    <footer class="footer glass-effect">
+        <div class="container">
+            <p>&copy; 2025 Weather Forecast App Developed By Jaanus Sri K G. All rights reserved.</p>
+            <p>Powered by <a href="https://openweathermap.org/" target="_blank">OpenWeatherMap</a> &  <a href="https://supabase.com/" target="_blank">Supabase</a></p>
+        </div>
+    </footer>
 </div>
 
 @code {
+    private string themeClass = "light-theme";
+    private Supabase.Gotrue.User? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await AuthService.GetUser();
+        AuthService.OnAuthStateChanged += RefreshState; // Subscribe to auth state changes
+    }
+
+    private void RefreshState()
+    {
+        InvokeAsync(async () =>
+        {
+            user = await AuthService.GetUser();
+            StateHasChanged(); // Force UI update
+        });
+    }
+
+    private void ToggleTheme()
+    {
+        themeClass = themeClass == "light-theme" ? "dark-theme" : "light-theme";
+    }
+
     private async Task Logout()
     {
-        await SupabaseService.SignOut();
-        Navigation.NavigateTo("/");
+        await AuthService.SignOut();
+        NavigationManager.NavigateTo("/", forceLoad: true); // Force reload to update the UI
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= RefreshState; // Unsubscribe on dispose
     }
 }
-
-<style>
-    .navbar {
-        display: flex;
-        background-color: #007bff;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .nav-item {
-        color: white;
-        text-decoration: none;
-        padding: 0.5rem 1rem;
-        margin: 0 0.25rem;
-        border-radius: 4px;
-        transition: background-color 0.3s;
-    }
-
-    .nav-item:hover {
-        background-color: rgba(255,255,255,0.2);
-    }
-
-    .logout-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: inherit;
-        font-family: inherit;
-    }
-
-    .user-email {
-        margin-left: auto;
-        color: white;
-    }
-
-    .main-content {
-        padding: 1rem;
-    }
-
-    #blazor-error-ui {
-        background: lightyellow;
-        bottom: 0;
-        box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-        display: none;
-        left: 0;
-        padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-        position: fixed;
-        width: 100%;
-        z-index: 1000;
-    }
-
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
-</style>
