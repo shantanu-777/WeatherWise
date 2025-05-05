@@ -2,7 +2,7 @@
 using Supabase.Gotrue;
 using Supabase.Gotrue.Exceptions;
 
-namespace BlazorApp.Services
+namespace WeatherWise.Client.Services
 {
     public class AuthService
     {

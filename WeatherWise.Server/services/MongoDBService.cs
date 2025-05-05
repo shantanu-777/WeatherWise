@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
-using BlazorApp.Server.Models;
+using WeatherWise.Server.Models;
 
-namespace BlazorApp.Server.Services
+namespace WeatherWise.Server.Services
 {
 
     public class MongoDBService

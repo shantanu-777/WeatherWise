@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
-namespace BlazorApp.Server.Controllers
+namespace WeatherWise.Server.Controllers
 {
     [Route("api/configuration")]
     [ApiController]

@@ -1,8 +1,8 @@
 ﻿using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
-using BlazorApp.Server.Models;
+using WeatherWise.Server.Models;
 
-namespace BlazorApp.Server.Services
+namespace WeatherWise.Server.Services
 {
     public class WeatherForecastService
     {

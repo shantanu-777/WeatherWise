@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using WeatherWise.Client.Services
+@inherits LayoutComponentBase
 @inject Services.AuthService AuthService
 @inject NavigationManager NavigationManager
 
@@ -7,54 +8,49 @@
     <header class="header glass-effect">
         <div class="container">
             <div class="navbar-brand">
-                <a href="/">Weather Forecast</a>
+                <img src="/images/weatherWise-logo.png" alt="WeatherWise Logo" class="logo" />
+                <a href="/">WeatherWise</a>
             </div>
             <nav class="nav-menu">
-                <NavLink href="/" Match="NavLinkMatch.All">Home</NavLink>
+                <NavLink href="/" Match="NavLinkMatch.All" class="nav-link">Home</NavLink>
                 @if (user != null)
                 {
-                    <NavLink href="/weather">Weather</NavLink>
-                    <NavLink href="/dashboard">Dashboard</NavLink>
-                    <button @onclick="Logout">Logout</button>
+                    <NavLink href="/weather" class="nav-link">Weather</NavLink>
+                    <NavLink href="/dashboard" class="nav-link">Dashboard</NavLink>
+                    <button class="logout-btn" @onclick="Logout">
+                        <span class="icon">🚪</span> Logout
+                    </button>
                 }
                 else
                 {
-                    <NavLink href="/dashboard">Dashboard</NavLink>
-                    <NavLink href="/login">Login</NavLink>
-                    <NavLink href="/signup">Sign Up</NavLink>
+                    <NavLink href="/dashboard" class="nav-link">Dashboard</NavLink>
+                    <NavLink href="/login" class="nav-link">Login</NavLink>
+                    <NavLink href="/signup" class="nav-link">Sign Up</NavLink>
                 }
             </nav>
             <div class="theme-toggle">
-                <button class="btn btn-secondary" @onclick="ToggleTheme">
+                <button class="theme-btn" @onclick="ToggleTheme">
                     @if (themeClass == "light-theme")
                     {
-                        <span>🌙</span> <!-- Moon for dark theme -->
+                        <span class="icon">🌙</span>
                     }
                     else
                     {
-                        <span>☀️</span> <!-- Sun for light theme -->
+                        <span class="icon">☀️</span>
                     }
-                    Change Theme
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main>
+    <main class="main-content">
         <div class="container">
             @Body
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer glass-effect">
-        <div class="container">
-            <p>&copy; 2025 Weather Forecast App Developed By Jaanus Sri K G. All rights reserved.</p>
-            <p>Powered by <a href="https://openweathermap.org/" target="_blank">OpenWeatherMap</a> &  <a href="https://supabase.com/" target="_blank">Supabase</a></p>
-        </div>
-    </footer>
-</div>
+ </div>
 
 @code {
     private string themeClass = "light-theme";
@@ -63,7 +59,7 @@
     protected override async Task OnInitializedAsync()
     {
         user = await AuthService.GetUser();
-        AuthService.OnAuthStateChanged += RefreshState; // Subscribe to auth state changes
+        AuthService.OnAuthStateChanged += RefreshState;
     }
 
     private void RefreshState()
@@ -71,7 +67,7 @@
         InvokeAsync(async () =>
         {
             user = await AuthService.GetUser();
-            StateHasChanged(); // Force UI update
+            StateHasChanged();
         });
     }
 
@@ -83,11 +79,11 @@
     private async Task Logout()
     {
         await AuthService.SignOut();
-        NavigationManager.NavigateTo("/", forceLoad: true); // Force reload to update the UI
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
     public void Dispose()
     {
-        AuthService.OnAuthStateChanged -= RefreshState; // Unsubscribe on dispose
+        AuthService.OnAuthStateChanged -= RefreshState;
     }
 }

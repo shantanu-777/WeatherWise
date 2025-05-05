@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using BlazorApp.Server.Services;
+using WeatherWise.Server.Services;
 //using BlazorApp.Server.Models;
 
 
-namespace BlazorApp.Server.Controllers
+namespace WeatherWise.Server.Controllers
 {
     //[Route("api/weather")]
     [ApiController]

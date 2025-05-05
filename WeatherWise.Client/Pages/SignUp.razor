@@ -1,4 +1,5 @@
 ﻿@page "/signup"
+@using Microsoft.AspNetCore.Components.Forms
 @inject Services.AuthService AuthService
 @inject NavigationManager NavigationManager
 
@@ -7,20 +8,18 @@
         <div class="form-content">
             <h1>Create Account</h1>
             <EditForm Model="signupModel" OnValidSubmit="HandleSignUp">
+                <DataAnnotationsValidator /> 
                 <div class="form-group">
                     <label for="email">Email</label>
                     <InputText id="email" @bind-Value="signupModel.Email" class="input-field"
                                placeholder="Enter your email" />
+                    <ValidationMessage For="@(() => signupModel.Email)" />
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <InputText type="password" id="password" @bind-Value="signupModel.Password"
                                class="input-field" placeholder="Enter your password" />
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <InputText type="password" id="confirmPassword" @bind-Value="confirmPassword"
-                               class="input-field" placeholder="Re-enter your password" />
+                    <ValidationMessage For="@(() => signupModel.Password)" />
                 </div>
                 <div class="form-group remember-me">
                     <input type="checkbox" id="terms" @bind="termsAccepted" />

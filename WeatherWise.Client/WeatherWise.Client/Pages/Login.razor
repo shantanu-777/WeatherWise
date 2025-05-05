@@ -1,0 +1,283 @@
+﻿@page "/login"
+@inject Services.AuthService AuthService
+@inject NavigationManager NavigationManager
+
+<div class="login-page">
+    <div class="login-container">
+        <div class="image-content">
+            <img src="/images/signin-image.jpg" alt="Sign in illustration" />
+        </div>
+
+        <div class="form-content">
+            <h1>Sign in</h1>
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <InputText id="email" @bind-Value="loginModel.Email" class="input-field"
+                               placeholder="Your Email" />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input-container">
+                        <InputText type="@(showPassword ? "text" : "password")"
+                                   id="password" @bind-Value="loginModel.Password"
+                                   class="input-field" placeholder="Password" />
+                        <span class="password-toggle" @onclick="TogglePasswordVisibility">
+                            @if (showPassword)
+                            {
+                                <span class="eye-icon">👁️</span>
+                            }
+                            else
+                            {
+                                <span class="eye-icon">👁️‍🗨️</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group remember-me">
+                    <input type="checkbox" id="rememberMe" @bind="rememberMe" />
+                    <label for="rememberMe">Remember me</label>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="login-button">Log in</button>
+                </div>
+            </EditForm>
+            <a href="/signup" class="create-account">Create an account</a>
+            <div class="social-login">
+                <p>Or login with</p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon facebook">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" />
+                    </a>
+                    <a href="#" class="social-icon twitter">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/X_logo.jpg" alt="Twitter" />
+                    </a>
+                    <a href="#" class="social-icon google">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" />
+                    </a>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private string errorMessage = string.Empty;
+    private bool showPassword = false;
+    private bool rememberMe = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            var session = await AuthService.SignIn(loginModel.Email, loginModel.Password);
+            if (session != null)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}
+
+<style>
+    .login-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f9f9f9;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .image-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .image-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+    .form-content {
+        flex: 1;
+        padding-left: 2rem;
+    }
+
+        .form-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+    .input-field {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+    .password-input-container {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .eye-icon {
+        font-size: 1.2rem;
+    }
+
+    .form-group.remember-me {
+        display: flex;
+        align-items: center;
+    }
+
+        .form-group.remember-me label {
+            font-size: 0.9rem;
+            color: #555;
+            margin-left: 0.5rem;
+        }
+
+    .login-button {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+
+    .create-account {
+        display: block;
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #555;
+        text-decoration: none;
+    }
+
+        .create-account:hover {
+            text-decoration: underline;
+        }
+
+    .social-login {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+        .social-login p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+    .social-icons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .social-icon img {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+        .social-icon img:hover {
+            transform: scale(1.1);
+        }
+
+    .error-message {
+        margin-top: 1rem;
+        padding: 0.8rem;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .login-container {
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        .image-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-content {
+            padding-left: 0;
+        }
+    }
+</style>

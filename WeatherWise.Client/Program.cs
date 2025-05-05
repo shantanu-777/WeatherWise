@@ -1,10 +1,10 @@
-﻿using BlazorApp;
-using BlazorApp.Services;
-using Microsoft.AspNetCore.Components.Web;
+﻿using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Supabase;
 using WeatherWise.Client;
+using WeatherWise.Client.Services;
+
 //using Supabase.Gotrue;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

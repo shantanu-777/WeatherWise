@@ -1,101 +1,211 @@
 ﻿@page "/weather"
-
-@inject BlazorApp.Services.GetWeatherService GetWeatherService
+@using MudBlazor
+@inject WeatherWise.Client.Services.GetWeatherService GetWeatherService
 @inject Services.AuthService AuthService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<PageTitle>WeatherWise Forecast</PageTitle>
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="background-container @GetWeatherBackgroundClass()">
+    @if (weatherData?.Weather != null)
+    {
+        @if (weatherData.Weather.ToLower().Contains("rain"))
+        {
+            <div class="rain-animation"></div>
+        }
+        else if (weatherData.Weather.ToLower().Contains("snow"))
+        {
+            <div class="snow-animation"></div>
+        }
+        else if (weatherData.Weather.ToLower().Contains("cloud"))
+        {
+            <div class="cloud-animation"></div>
+        }
+        else if (weatherData.Weather.ToLower().Contains("clear"))
+        {
+            <div class="sun-animation"></div>
+        }
+    }
+</div>
 
 @if (user == null)
 {
-    <div class="auth-prompt">
+    <div class="auth-prompt glass-container">
         <h3>Login or Sign Up to Get Weather Details</h3>
         <p>Please log in or sign up to access the weather forecast.</p>
-        <button class="btn btn-primary" @onclick="NavigateToLogin">Login</button>
-        <button class="btn btn-secondary" @onclick="NavigateToSignUp">Sign Up</button>
+        <div class="auth-buttons">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToLogin">Login</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateToSignUp">Sign Up</MudButton>
+        </div>
     </div>
 }
 else
 {
-    <div class="weather-container @weatherClass fade-in">
-        <h3 class="text-center mb-3 slide-in">Weather Forecast</h3>
-        <div class="input-group mb-3 slide-in">
-            <input class="form-control" @bind="city" placeholder="Enter city" />
-            <button class="btn btn-primary" @onclick="FetchWeather" disabled="@isLoading">Get Weather</button>
-            <button class="btn btn-secondary" @onclick="GetLocation" disabled="@isLoading">Use My Location</button>
+    <div class="weather-app-container">
+        <div class="glass-container search-container">
+            <div class="input-group">
+                <MudTextField @bind-Value="city"
+                             Label="Search city..."
+                             Variant="Variant.Outlined"
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.Search"
+                             Class="search-field"
+                             Immediate="true"
+                             OnKeyDown="@(e => { if (e.Key == "Enter") FetchWeather(); })" />
+                <MudButton Variant="Variant.Filled" 
+                         Color="Color.Primary" 
+                         OnClick="FetchWeather" 
+                         Disabled="@isLoading"
+                         StartIcon="@Icons.Material.Filled.Search">
+                    Search
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" 
+                         Color="Color.Secondary" 
+                         OnClick="GetLocation" 
+                         Disabled="@isLoading"
+                         StartIcon="@Icons.Material.Filled.LocationOn">
+                    My Location
+                </MudButton>
+            </div>
         </div>
 
         @if (isLoading)
         {
-            <div class="text-center">
-                <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
+            <div class="loading-overlay">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
             </div>
         }
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="alert alert-danger slide-in" role="alert">
-                <strong>Error:</strong> @errorMessage
-            </div>
-        }
-
-        @if (!string.IsNullOrEmpty(successMessage))
-        {
-            <div class="alert alert-success slide-in" role="alert">
-                <strong>Success:</strong> @successMessage
-            </div>
+            <MudAlert Severity="Severity.Error" Class="slide-in">@errorMessage</MudAlert>
         }
 
         @if (weatherData is not null)
         {
-            <div class="weather-details mt-3 slide-in">
-                <div class="weather-card @GetWeatherClass(weatherData.Weather) glass-effect">
-                    <button class="btn-like" @onclick="async () => await ToggleLike(weatherData.Name)">
-                        @(IsLocationLiked(weatherData.Name) ? "❤️" : "🤍") <!-- Red heart if liked, white heart if not -->
-                    </button>
-                    <div class="weather-icon">
-                        @GetWeatherIcon(weatherData.Weather)
+            <div class="dashboard-grid">
+                <!-- Current Weather Card -->
+                <div class="glass-container current-weather-card">
+                    <div class="location-time">
+                        <div class="location">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" />
+                            <span>@weatherData.Name</span>
+                            <button class="btn-like" @onclick="async () => await ToggleLike(weatherData.Name)">
+                                @(IsLocationLiked(weatherData.Name) ? "❤️" : "🤍")
+                            </button>
+                        </div>
+                        <div class="time">@DateTime.Now.ToString("h:mm tt")</div>
                     </div>
-                    <div class="weather-info">
-                        <h4>@weatherData!.Name</h4>
-                        <p><strong>Temperature:</strong> @weatherData!.Temperature °C</p>
-                        <p><strong>Weather:</strong> @weatherData!.Weather</p>
-                        <p><strong>Description:</strong> @weatherData!.Description</p>
-                        <p><strong>Wind Speed:</strong> @weatherData!.Wind m/s</p>
-                        <p><strong>Humidity:</strong> @weatherData!.Humidity %</p>
-                        <p><strong>Pressure:</strong> @weatherData!.Pressure hPa</p>
-                        <p><strong>Visibility:</strong> @weatherData!.Visibility km</p>
-                        <p><strong>Sunrise:</strong> @ConvertToDateTime(weatherData!.Sunrise)</p>
-                        <p><strong>Sunset:</strong> @ConvertToDateTime(weatherData!.Sunset)</p>
+
+                    <div class="weather-main">
+                        <div class="temperature">@weatherData.Temperature°</div>
+                        <div class="weather-icon">
+                            @GetWeatherIcon(weatherData.Weather)
+                        </div>
+                    </div>
+
+                    <div class="weather-description">
+                        @weatherData.Description
+                    </div>
+
+                    <div class="weather-stats-grid">
+                        <div class="stat-item">
+                            <MudIcon Icon="@Icons.Material.Filled.Air" />
+                            <div>
+                                <div class="stat-value">@weatherData.Wind m/s</div>
+                                <div class="stat-label">Wind</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <MudIcon Icon="@Icons.Material.Filled.WaterDrop" />
+                            <div>
+                                <div class="stat-value">@weatherData.Humidity%</div>
+                                <div class="stat-label">Humidity</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <MudIcon Icon="@Icons.Material.Filled.Compress" />
+                            <div>
+                                <div class="stat-value">@weatherData.Pressure hPa</div>
+                                <div class="stat-label">Pressure</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <MudIcon Icon="@Icons.Material.Filled.Visibility" />
+                            <div>
+                                <div class="stat-value">@weatherData.Visibility km</div>
+                                <div class="stat-label">Visibility</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <h4 class="mt-4 slide-in">Upcoming days Forecast...</h4>
-            <div class="weather-details slide-in">
-                @foreach (var forecast in forecastData)
-                {
-                    <div class="weather-card @GetWeatherClass(forecast.Weather) glass-effect">
-                        <button class="btn-like" @onclick="async () => await ToggleLike(forecast.Name)">
-                            @(IsLocationLiked(forecast.Name) ? "❤️" : "🤍") <!-- Red heart if liked, white heart if not -->
-                        </button>
-                        <div class="weather-icon">
-                            @GetWeatherIcon(forecast.Weather)
+                <!-- Forecast Card -->
+                <div class="glass-container forecast-card">
+                    <div class="card-header">
+                        <h3>5-Day Forecast</h3>
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" />
+                    </div>
+                    <div class="forecast-scroll">
+                        @foreach (var forecast in forecastData)
+                        {
+                            <div class="forecast-item">
+                                <div class="day">@forecast.Date</div>
+                                <div class="weather-icon">@GetWeatherIcon(forecast.Weather)</div>
+                                <div class="temp">@forecast.Temperature°</div>
+                                <div class="description">@forecast.Description</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Popular Cities Card -->
+                <div class="glass-container forecast-card">
+                    <div class="card-header">
+                        <h3>Popular Cities</h3>
+                        <MudIcon Icon="@Icons.Material.Filled.LocationCity" />
+                    </div>
+                    <div class="popular-cities-grid">
+                        @foreach (var city in popularCities)
+                        {
+                            <div class="city-item" @onclick="() => { this.city = city; FetchWeather(); }">
+                                <div class="city-name">@city</div>
+                                <div class="weather-icon">@GetWeatherIcon("Clear")</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Sun Times Card -->
+                <div class="glass-container stats-card">
+                    <div class="card-header">
+                        <h3>Sun Times</h3>
+                        <MudIcon Icon="@Icons.Material.Filled.WbSunny" />
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <MudIcon Icon="@Icons.Material.Filled.WbSunny" />
+                            <div>
+                                <div class="stat-value">@ConvertToDateTime(weatherData.Sunrise)</div>
+                                <div class="stat-label">Sunrise</div>
+                            </div>
                         </div>
-                        <div class="weather-info">
-                            <h5>@forecast.Date</h5>
-                            <p><strong>Temperature:</strong> @forecast.Temperature °C</p>
-                            <p><strong>Weather:</strong> @forecast.Weather</p>
-                            <p><strong>Description:</strong> @forecast.Description</p>
-                            <p><strong>Wind Speed:</strong> @forecast.Wind m/s</p>
-                            <p><strong>Humidity:</strong> @forecast.Humidity %</p>
-                            <p><strong>Pressure:</strong> @forecast.Pressure hPa</p>
-                            <p><strong>Visibility:</strong> @forecast.Visibility km</p>
+                        <div class="stat-item">
+                            <MudIcon Icon="@Icons.Material.Filled.Brightness3" />
+                            <div>
+                                <div class="stat-value">@ConvertToDateTime(weatherData.Sunset)</div>
+                                <div class="stat-label">Sunset</div>
+                            </div>
                         </div>
                     </div>
-                }
+                </div>
             </div>
         }
     </div>
@@ -106,11 +216,10 @@ else
     private BlazorApp.Services.WeatherData? weatherData;
     private List<BlazorApp.Services.WeatherData> forecastData = new();
     private string errorMessage = string.Empty;
-    private string successMessage = string.Empty; // New variable for success messages
-    private string weatherClass = "";
     private bool isLoading = false;
     private Supabase.Gotrue.User? user;
-    private Dictionary<string, bool> likedLocations = new Dictionary<string, bool>(); // Track liked state per location
+    private Dictionary<string, bool> likedLocations = new Dictionary<string, bool>();
+    private string[] popularCities = new[] { "London", "New York", "Tokyo", "Paris", "Sydney" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,9 +242,9 @@ else
         {
             isLoading = true;
             errorMessage = string.Empty;
-            successMessage = string.Empty; // Clear success message
             weatherData = null;
             forecastData = new();
+            StateHasChanged();
 
             if (string.IsNullOrWhiteSpace(city))
             {
@@ -157,13 +266,14 @@ else
             }
             else
             {
-                SetWeatherTheme(weatherData.Weather);
                 forecastData = await GetWeatherService.Get5DayForecastAsync(city);
+                Snackbar.Add($"Weather data for {city} loaded successfully", Severity.Success);
             }
         }
         catch (Exception ex)
         {
             errorMessage = "An error occurred while fetching weather data. Please try again.";
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -176,14 +286,20 @@ else
         try
         {
             isLoading = true;
+            errorMessage = string.Empty;
+            weatherData = null;
+            forecastData = new();
+            StateHasChanged();
+
             var location = await JSRuntime.InvokeAsync<Location>("getLocation");
             var response = await GetWeatherService.GetWeatherByCoordsAsync(location.Latitude, location.Longitude);
 
             if (response != null)
             {
                 weatherData = response;
-                SetWeatherTheme(weatherData.Weather);
+                city = weatherData.Name;
                 forecastData = await GetWeatherService.Get5DayForecastByCoordsAsync(location.Latitude, location.Longitude);
+                Snackbar.Add($"Weather data for your location loaded successfully", Severity.Success);
             }
             else
             {
@@ -193,6 +309,7 @@ else
         catch (Exception ex)
         {
             errorMessage = "Unable to get your location. Please ensure location services are enabled.";
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -200,31 +317,25 @@ else
         }
     }
 
-    private void SetWeatherTheme(string weatherCondition)
+    private string GetWeatherBackgroundClass()
     {
-        switch (weatherCondition.ToLower())
-        {
-            case "clear":
-                weatherClass = "clear-theme";
-                break;
-            case "clouds":
-                weatherClass = "cloudy-theme";
-                break;
-            case "rain":
-                weatherClass = "rainy-theme";
-                break;
-            case "snow":
-                weatherClass = "snowy-theme";
-                break;
-            default:
-                weatherClass = "";
-                break;
-        }
+        if (weatherData == null) return "default-bg";
+        
+        var weather = weatherData.Weather.ToLower();
+        
+        if (weather.Contains("rain")) return "rain-bg";
+        if (weather.Contains("snow")) return "snow-bg";
+        if (weather.Contains("cloud")) return "cloud-bg";
+        if (weather.Contains("clear")) return "clear-bg";
+        if (weather.Contains("thunder")) return "thunder-bg";
+        if (weather.Contains("mist") || weather.Contains("fog")) return "fog-bg";
+        
+        return "default-bg";
     }
 
     private string ConvertToDateTime(long timestamp)
     {
-        return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("HH:mm:ss");
+        return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("HH:mm");
     }
 
     private string GetWeatherIcon(string weatherCondition)
@@ -241,26 +352,6 @@ else
         };
     }
 
-    private string GetWeatherClass(string weatherCondition)
-    {
-        return weatherCondition.ToLower() switch
-        {
-            "clear" => "clear",
-            "clouds" => "clouds",
-            "rain" => "rain",
-            "snow" => "snow",
-            "thunderstorm" => "thunderstorm",
-            "mist" => "mist",
-            _ => "default"
-        };
-    }
-
-    public class Location
-    {
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-    }
-
     private bool IsLocationLiked(string locationName)
     {
         return likedLocations.ContainsKey(locationName) && likedLocations[locationName];
@@ -270,14 +361,14 @@ else
     {
         if (likedLocations.ContainsKey(locationName))
         {
-            likedLocations[locationName] = !likedLocations[locationName]; // Toggle the state
+            likedLocations[locationName] = !likedLocations[locationName];
         }
         else
         {
-            likedLocations[locationName] = true; // Mark as liked
+            likedLocations[locationName] = true;
         }
 
-        await LikeLocation(locationName); // Call the backend logic
+        await LikeLocation(locationName);
     }
 
     private async Task LikeLocation(string locationName)
@@ -301,25 +392,495 @@ else
 
             if (response.IsSuccessStatusCode)
             {
-                successMessage = "Location liked successfully!"; // Use successMessage for success notifications
-                errorMessage = string.Empty; // Clear any previous error message
-
-                // Clear the success message after 3 seconds
-                await Task.Delay(3000); // Wait for 3 seconds
-                successMessage = string.Empty; // Clear the success message
-                StateHasChanged(); // Force UI update
+                Snackbar.Add("Location liked successfully!", Severity.Success);
             }
             else
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Failed to like the location. Server response: {errorContent}";
-                successMessage = string.Empty; // Clear any previous success message
+                Snackbar.Add($"Failed to like the location: {errorContent}", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            errorMessage = $"An error occurred: {ex.Message}";
-            successMessage = string.Empty; // Clear any previous success message
+            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
         }
     }
+
+    public class Location
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
 }
+
+<style>
+    /* Base Styles */
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.15);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        --text-light: rgba(255, 255, 255, 0.9);
+        --text-lighter: rgba(255, 255, 255, 0.7);
+        --primary-accent: #4cc9f0;
+        --border-radius: 20px;
+        --blur-amount: 8px;
+    }
+
+    /* Background Container with Weather Themes */
+    .background-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        transition: all 0.5s ease;
+    }
+
+    .default-bg {
+        background: linear-gradient(135deg, #1a3a8f, #0a1f44);
+    }
+
+    .clear-bg {
+        background: linear-gradient(135deg, #47b2ff, #0071ff);
+    }
+
+    .cloud-bg {
+        background: linear-gradient(135deg, #6d7b8d, #3e4a61);
+    }
+
+    .rain-bg {
+        background: linear-gradient(135deg, #4a6fa5, #2c3e50);
+    }
+
+    .snow-bg {
+        background: linear-gradient(135deg, #b0c4de, #6b7b8c);
+    }
+
+    .thunder-bg {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+    }
+
+    .fog-bg {
+        background: linear-gradient(135deg, #c9d6df, #8e9eab);
+    }
+
+    /* Weather Animations */
+    .rain-animation, .snow-animation, .cloud-animation, .sun-animation {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .rain-animation {
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><line x1="1" y1="1" x2="1" y2="3" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/></svg>');
+        animation: rainAnimation 1s linear infinite;
+    }
+
+    .snow-animation {
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="1.5" cy="1.5" r="1" fill="rgba(255,255,255,0.8)"/></svg>');
+        animation: snowAnimation 10s linear infinite;
+    }
+
+    .cloud-animation {
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30"><path d="M20,15 Q25,5 35,5 Q40,0 50,0 Q60,0 65,5 Q75,5 80,15 Q90,15 90,20 Q90,25 80,25 L20,25 Q10,25 10,20 Q10,15 20,15" fill="rgba(255,255,255,0.1)"/></svg>');
+        background-size: 200px;
+        animation: cloudsAnimation 60s linear infinite;
+    }
+
+    .sun-animation {
+        background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.2) 0%, transparent 20%);
+    }
+
+    @@keyframes rainAnimation {
+        to { background-position: 0 100vh; }
+    }
+
+    @@keyframes snowAnimation {
+        to { background-position: 0 100vh; }
+    }
+
+    @@keyframes cloudsAnimation {
+        to { background-position: 1000px 0; }
+    }
+
+    /* Auth Prompt */
+    .auth-prompt {
+        max-width: 500px;
+        margin: 100px auto;
+        padding: 30px;
+        text-align: center;
+        color: var(--text-light);
+    }
+
+    .auth-prompt h3 {
+        margin-bottom: 15px;
+    }
+
+    .auth-prompt p {
+        margin-bottom: 25px;
+        color: var(--text-lighter);
+    }
+
+    .auth-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    /* Main App Container */
+    .weather-app-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        color: var(--text-light);
+        font-family: 'Segoe UI', sans-serif;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Glass Container Style */
+    .glass-container {
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--blur-amount));
+        -webkit-backdrop-filter: blur(var(--blur-amount));
+        border-radius: var(--border-radius);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        transition: all 0.3s ease;
+    }
+
+    .glass-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Search Container */
+    .search-container {
+        margin: 40px auto 30px;
+        max-width: 600px;
+        padding: 15px 20px;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .search-field {
+        flex-grow: 1;
+    }
+
+    .search-field .mud-input-outlined-border {
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .search-field input {
+        color: var(--text-light) !important;
+    }
+
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* Current Weather Card */
+    .current-weather-card {
+        grid-column: span 2;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .location-time {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.3rem;
+        font-weight: 500;
+    }
+
+    .btn-like {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin-left: 10px;
+    }
+
+    .time {
+        font-size: 1rem;
+        color: var(--text-lighter);
+    }
+
+    .weather-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .temperature {
+        font-size: 5rem;
+        font-weight: 200;
+        line-height: 1;
+    }
+
+    .weather-icon {
+        font-size: 4rem;
+    }
+
+    .weather-description {
+        text-align: center;
+        font-size: 1.3rem;
+        text-transform: capitalize;
+        margin-bottom: 20px;
+    }
+
+    .weather-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+
+    .stat-item .mud-icon-root {
+        font-size: 1.5rem;
+        color: var(--primary-accent);
+    }
+
+    .stat-value {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-lighter);
+    }
+
+    /* Forecast Cards */
+    .forecast-card {
+        padding: 20px;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    .card-header .mud-icon-root {
+        color: var(--primary-accent);
+    }
+
+    /* Forecast Scroll */
+    .forecast-scroll {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .forecast-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 100px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+
+    .day {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .forecast-item .weather-icon {
+        font-size: 2rem;
+        margin: 5px 0;
+    }
+
+    .temp {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .description {
+        font-size: 0.8rem;
+        color: var(--text-lighter);
+        text-align: center;
+    }
+
+    /* Popular Cities Grid */
+    .popular-cities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .city-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 12px;
+    }
+
+    .city-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .city-name {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    .city-item .weather-icon {
+        font-size: 1.5rem;
+    }
+
+    /* Stats Card */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    /* Animations */
+    .slide-in {
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .current-weather-card {
+            grid-column: span 1;
+        }
+
+        .weather-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .input-group {
+            flex-direction: column;
+        }
+
+        .search-field {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .temperature {
+            font-size: 3.5rem;
+        }
+
+        .weather-icon {
+            font-size: 3rem;
+        }
+
+        .popular-cities-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .auth-prompt {
+            margin: 50px 20px;
+            padding: 20px;
+        }
+    }
+</style>

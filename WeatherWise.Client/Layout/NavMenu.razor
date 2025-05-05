@@ -1,46 +1,39 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Weather Forecast</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
+﻿<div class="nav-menu-container glass-effect">
+    <div class="nav-header">
+        <button class="nav-toggle" @onclick="ToggleNavMenu">
+            <span class="icon">☰</span>
         </button>
+        <div class="nav-brand">
+            <img src="/images/weather-icon.png" alt="Weather Icon" class="nav-logo" />
+            <span>WeatherWise</span>
+        </div>
     </div>
-</div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
+    <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+        <nav class="nav-links">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="icon">🏠</span> Home
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="weather">
-                <span class="bi bi-cloud-sun-fill-nav-menu" aria-hidden="true"></span> Weather
+                <span class="icon">🌤️</span> Weather
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="dashboard">
-                <span class="bi bi-globe-nav-menu" aria-hidden="true"></span> Global Dashboard
+                <span class="icon">📊</span> Dashboard
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
-                <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
+                <span class="icon">🔑</span> Login
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="signup">
-                <span class="bi bi-person-plus" aria-hidden="true"></span> Sign Up
+                <span class="icon">✍️</span> Sign Up
             </NavLink>
-        </div>
-    </nav>
+        </nav>
+    </div>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapsed" : "expanded";
 
     private void ToggleNavMenu()
     {

@@ -1,0 +1,274 @@
+﻿@page "/dashboard"
+@inject BlazorApp.Services.GetWeatherService GetWeatherService
+
+<div class="weather-dashboard">
+    <h3 class="dashboard-title">Global Weather Dashboard</h3>
+
+    <div class="city-selector">
+        @foreach (var city in topCities)
+        {
+            <button class="city-btn @(selectedCity == city ? "active" : "")"
+                    @onclick="() => SelectCity(city)">
+                @city
+            </button>
+        }
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="weather-loading">
+            <div class="spinner"></div>
+            <p>Loading weather data...</p>
+        </div>
+    }
+    else if (weatherData is not null)
+    {
+        <div class="weather-card">
+            <div class="weather-header">
+                <h2>@weatherData.Name</h2>
+                <p class="current-date">@DateTime.Now.ToString("dddd, MMMM dd")</p>
+                <div class="current-temp">
+                    <span>@weatherData.Temperature.ToString("0")°C</span>
+                    <img src="@GetWeatherIcon(weatherData.Weather)" alt="@weatherData.Weather" class="weather-icon" />
+                </div>
+                <p class="weather-description">@CapitalizeFirstLetter(weatherData.Description)</p>
+            </div>
+
+            <div class="weather-details">
+                <div class="detail-item">
+                    <i class="wi wi-humidity"></i>
+                    <span>Humidity</span>
+                    <strong>@weatherData.Humidity%</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-strong-wind"></i>
+                    <span>Wind</span>
+                    <strong>@weatherData.Wind m/s</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-barometer"></i>
+                    <span>Pressure</span>
+                    <strong>@weatherData.Pressure hPa</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-sunrise"></i>
+                    <span>Sunrise</span>
+                    <strong>@ConvertToDateTime(weatherData.Sunrise)</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-sunset"></i>
+                    <span>Sunset</span>
+                    <strong>@ConvertToDateTime(weatherData.Sunset)</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-raindrop"></i>
+                    <span>Visibility</span>
+                    <strong>@(weatherData.Visibility / 1000) km</strong>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="weather-placeholder">
+            <i class="wi wi-day-sunny"></i>
+            <p>Select a city to view weather information</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<string> topCities = new List<string> { "New York", "London", "Tokyo", "Paris", "Berlin" };
+    private BlazorApp.Services.WeatherData? weatherData;
+    private string? selectedCity;
+    private bool isLoading = false;
+
+    private async Task SelectCity(string city)
+    {
+        selectedCity = city;
+        isLoading = true;
+        weatherData = await GetWeatherService.GetWeatherAsync(city);
+        isLoading = false;
+    }
+
+    private string ConvertToDateTime(long timestamp)
+    {
+        return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("HH:mm");
+    }
+
+    private string CapitalizeFirstLetter(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        return char.ToUpper(input[0]) + input.Substring(1);
+    }
+
+    private string GetWeatherIcon(string weather)
+    {
+        return weather.ToLower() switch
+        {
+            "clear" => "/images/weather-icons/clear.svg",
+            "clouds" => "/images/weather-icons/cloudy.svg",
+            "rain" => "/images/weather-icons/rain.svg",
+            "snow" => "/images/weather-icons/snow.svg",
+            "thunderstorm" => "/images/weather-icons/thunderstorm.svg",
+            "drizzle" => "/images/weather-icons/drizzle.svg",
+            "mist" or "fog" or "haze" => "/images/weather-icons/fog.svg",
+            _ => "/images/weather-icons/clear.svg"
+        };
+    }
+}
+<style>
+    .weather-dashboard {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .dashboard-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-weight: 600;
+    }
+
+    .city-selector {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .city-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 20px;
+        background-color: #f0f0f0;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .city-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .city-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+    .weather-card {
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+        border-radius: 15px;
+        padding: 25px;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .weather-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+        .weather-header h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+    .current-date {
+        margin: 5px 0 15px;
+        opacity: 0.8;
+    }
+
+    .current-temp {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+        .current-temp span {
+            font-size: 48px;
+            font-weight: 300;
+        }
+
+    .weather-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .weather-description {
+        margin: 0;
+        font-size: 18px;
+        text-transform: capitalize;
+    }
+
+    .weather-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .detail-item {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .detail-item i {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .detail-item span {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+
+        .detail-item strong {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+    .weather-placeholder {
+        text-align: center;
+        padding: 40px;
+        background-color: #f8f9fa;
+        border-radius: 15px;
+        color: #6c757d;
+    }
+
+        .weather-placeholder i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            color: #adb5bd;
+        }
+
+    .weather-loading {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #3498db;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+</style>

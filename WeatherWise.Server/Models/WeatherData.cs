@@ -1,4 +1,4 @@
-﻿namespace BlazorApp.Server.Models
+﻿namespace WeatherWise.server.Models
 {
     public class WeatherData
     {

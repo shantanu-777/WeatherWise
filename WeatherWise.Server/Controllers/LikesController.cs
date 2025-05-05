@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BlazorApp.Server.Services;
-using BlazorApp.Server.Models;
+using WeatherWise.Server.Services;
+using WeatherWise.Server.Models
 using MongoDB.Driver;
 
-namespace BlazorApp.Server.Controllers
+namespace WeatherWise.Server.Controllers
 {
     //[Route("api/[controller]")]
     //[ApiController]
